@@ -1,0 +1,29 @@
+:root {
+  /* ===== 糖果调色板 ===== */
+  --candy-pink: #ff8fb1;
+  --candy-peach: #ffb86b;
+  --candy-lemon: #ffd166;
+  --candy-mint: #7ee0c2;
+  --candy-grape: #b794f6;
+  --candy-sky: #7cc7ff;
+
+  /* ===== 背景 ===== */
+  --bg-gradient: linear-gradient(135deg, #ffd9e8 0%, #ffe0c9 45%, #fff4c2 100%);
+
+  /* ===== 文字 ===== */
+  --text-strong: #5a3a55;
+  --text-soft: #8a6b7d;
+
+  /* ===== 卡片 ===== */
+  --card-bg: rgba(255, 255, 255, 0.78);
+  --card-border: rgba(255, 143, 177, 0.45);
+  --card-shadow: 0 18px 40px -18px rgba(214, 110, 150, 0.45);
+
+  /* ===== 圆角 ===== */
+  --radius-card: 28px;
+  --radius-pill: 999px;
+
+  /* ===== 字体 ===== */
+  --font-fun: 'ZCOOL KuaiLe', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-body: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}

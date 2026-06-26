@@ -1,0 +1,22 @@
+{
+  "name": "ai-coding-playground",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI 编程引擎可视化系统 —— 孩子用自然语言与 Claude Code 协同开发小游戏的演示",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "typescript": "~5.4.5",
+    "vite": "^5.2.11",
+    "vue-tsc": "^2.0.16"
+  }
+}
