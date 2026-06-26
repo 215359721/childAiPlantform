@@ -1,5 +1,7 @@
 :root {
-  /* ===== 糖果调色板 ===== */
+  /* ===== 糖果调色板（默认：粉色系 / 女孩风）=====
+     说明：这些变量代表"当前主题的配色"，蓝主题会在下面整体覆盖。
+     组件统一用这些变量，换肤时自动变色。 */
   --candy-pink: #ff8fb1;
   --candy-peach: #ffb86b;
   --candy-lemon: #ffd166;
@@ -7,23 +9,49 @@
   --candy-grape: #b794f6;
   --candy-sky: #7cc7ff;
 
-  /* ===== 背景 ===== */
+  /* 主题强调色（用于阴影 / 聚焦环 / 滚动条），格式 R, G, B */
+  --accent-rgb: 214, 110, 150;
+  --accent-soft-rgb: 255, 143, 177;
+
+  /* 背景 */
   --bg-gradient: linear-gradient(135deg, #ffd9e8 0%, #ffe0c9 45%, #fff4c2 100%);
 
-  /* ===== 文字 ===== */
+  /* 文字 */
   --text-strong: #5a3a55;
   --text-soft: #8a6b7d;
 
-  /* ===== 卡片 ===== */
+  /* 卡片 */
   --card-bg: rgba(255, 255, 255, 0.78);
   --card-border: rgba(255, 143, 177, 0.45);
   --card-shadow: 0 18px 40px -18px rgba(214, 110, 150, 0.45);
 
-  /* ===== 圆角 ===== */
+  /* 圆角 */
   --radius-card: 28px;
   --radius-pill: 999px;
 
-  /* ===== 字体 ===== */
+  /* 字体 */
   --font-fun: 'ZCOOL KuaiLe', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
   --font-body: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ===== 蓝色系主题（男孩风）===== */
+:root[data-theme='blue'] {
+  --candy-pink: #4f9bff;
+  --candy-peach: #7cc7ff;
+  --candy-lemon: #7fdfff;
+  --candy-mint: #5fc8c0;
+  --candy-grape: #6b8af5;
+  --candy-sky: #4fd6c5;
+
+  --accent-rgb: 40, 90, 180;
+  --accent-soft-rgb: 79, 155, 255;
+
+  --bg-gradient: linear-gradient(135deg, #d8ecff 0%, #e6f2ff 45%, #f0f8ff 100%);
+
+  --text-strong: #1f3a6b;
+  --text-soft: #5476a8;
+
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(79, 155, 255, 0.45);
+  --card-shadow: 0 18px 40px -18px rgba(40, 90, 180, 0.4);
 }

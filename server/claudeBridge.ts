@@ -20,6 +20,7 @@ const SYSTEM_PROMPT = [
   '已有功能只增不改不删；在 changeLog.ts 数组末尾追加一条 feature 记录（含 emoji/summary/childSaid/time/type），其中 childSaid 必须一字不差照抄孩子原话（不得改写）；',
   '不要运行任何命令、不要改动其它文件；完成后用一句话告诉孩子做了什么。',
   '视觉保持卡通糖果风，颜色复用 src/styles/variables.css 里的糖果色变量。',
+  '新加的场景/外层容器必须 width:100%/height:100% 撑满整个游戏画布，且内容不得溢出画布（超出用 overflow:hidden 裁剪或调整定位保证不出界），无论做什么功能都遵守。',
 ].join('')
 
 // 只允许的文件编辑工具（安全收口）
@@ -138,6 +139,33 @@ export function claudeBridgePlugin(): Plugin {
         // 客户端提前断开时，停掉子进程
         req.on('close', () => {
           if (!child.killed) child.kill()
+        })
+      })
+
+      // POST /api/reset：一键重置 generated/ 为干净骨架（复用 scripts/reset-generated.mjs）
+      server.middlewares.use('/api/reset', (req, res) => {
+        if (req.method !== 'POST') {
+          res.writeHead(405, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: '只支持 POST' }))
+          return
+        }
+        const child = spawn('node', ['scripts/reset-generated.mjs'], { cwd: process.cwd() })
+        let stderrText = ''
+        child.stderr.on('data', (c: Buffer) => {
+          stderrText += c.toString()
+        })
+        child.on('close', (code) => {
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(
+            JSON.stringify({
+              ok: code === 0,
+              error: code === 0 ? '' : stderrText.trim().slice(0, 300) || `退出码 ${code}`,
+            }),
+          )
+        })
+        child.on('error', (err) => {
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: false, error: err.message }))
         })
       })
     },

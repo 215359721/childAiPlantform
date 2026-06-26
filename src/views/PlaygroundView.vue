@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// 唯一页面：标题 + 输入栏 + 游戏区 + 状态面板 + 修改日志。
+// 唯一页面：标题 + 输入栏 + 游戏区 + 状态面板 + 修改日志。整页铺满视口，不出现页面滚动条。
 import GameHeader from '@/components/GameHeader.vue'
 import InputBar from '@/components/InputBar.vue'
 import GameCanvas from '@/components/GameCanvas.vue'
@@ -13,52 +13,47 @@ import ChangeLog from '@/components/ChangeLog.vue'
     <InputBar />
 
     <main class="playground-main">
-      <div class="canvas-wrap">
-        <GameCanvas />
-      </div>
+      <GameCanvas />
       <div class="side">
         <StatusPanel />
         <ChangeLog />
       </div>
     </main>
-
-    <footer class="playground-footer">
-      <span>孩子负责创意 · AI 负责编程 · 程序员负责审核运行</span>
-    </footer>
   </div>
 </template>
 
 <style scoped>
 .playground {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 28px 22px 40px;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: clamp(14px, 1.6vw, 22px);
 }
 
 .playground-main {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 22px;
-  align-items: start;
-  margin-top: 18px;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
 }
 
 .side {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
+  min-height: 0;
 }
 
-.playground-footer {
-  margin-top: 26px;
-  text-align: center;
-  color: var(--text-soft);
-  font-size: 0.9rem;
-}
-
-@media (max-width: 860px) {
+@media (max-width: 820px) {
   .playground-main {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    overflow-y: auto;
   }
 }
 </style>

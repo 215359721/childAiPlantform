@@ -16,8 +16,7 @@ body {
   color: var(--text-strong);
   background: var(--bg-gradient);
   background-attachment: fixed;
-  min-height: 100vh;
-  overflow-x: hidden;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -61,7 +60,12 @@ body::after {
   }
 }
 
+/* 整页铺满视口、不出现页面滚动条；内部区域各自管理滚动 */
 #app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   position: relative;
   z-index: 1;
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// ① 页面标题。后续一般无需修改。
+// ① 页面标题（紧凑）。后续一般无需修改。
 </script>
 
 <template>
@@ -16,24 +16,25 @@
 <style scoped>
 .game-header {
   text-align: center;
-  padding: 8px 0 4px;
+  padding: 2px 0 0;
+  flex-shrink: 0;
 }
 
 .title-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .emoji {
-  font-size: 2.4rem;
+  font-size: 1.7rem;
   animation: bob 2.6s ease-in-out infinite;
 }
 
 .title {
   font-family: var(--font-fun);
-  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-size: clamp(1.4rem, 3.6vw, 2.1rem);
   margin: 0;
   color: var(--text-strong);
   letter-spacing: 1px;
@@ -41,8 +42,8 @@
 }
 
 .tagline {
-  margin: 6px 0 0;
-  font-size: 1rem;
+  margin: 2px 0 0;
+  font-size: 0.9rem;
   color: var(--text-soft);
 }
 
@@ -52,7 +53,7 @@
     transform: translateY(0) rotate(-4deg);
   }
   50% {
-    transform: translateY(-8px) rotate(4deg);
+    transform: translateY(-6px) rotate(4deg);
   }
 }
 </style>

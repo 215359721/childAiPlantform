@@ -23,10 +23,12 @@
 
 无论需求是孩子在网页上提的，还是你在终端里收到的，**落地到代码时只动 `src/generated/` 下的文件，只做两件事**：
 
-### 1. 在 `src/generated/GameContent.vue` 里加入新功能
+### 1. 在 `src/generated/GameContent.vue` 里加入新功能（作品区）
+- ⚠️ 空状态的"欢迎语"由 `GameCanvas.vue` 自动管理（有作品就自动隐藏），**不要在 GameContent 里写欢迎语**，这里只放孩子的作品。
 - 在现有内容**下方继续加**新元素（小恐龙、按钮、动画、背景…）。
 - **只增不改不删**：已有功能继续保留可用，不要重构、不要覆盖历史功能。
 - 新功能与已有冲突时，优先兼容。
+- 📐 **撑满画布、不超出**：新加的场景/外层容器必须填满整个游戏画布——`width: 100%; height: 100%`（外层用 `position: absolute; inset: 0` 或 100%×100%），**内容不得溢出画布**：超出部分用 `overflow: hidden` 裁掉，或调整尺寸/定位保证不出界。无论做什么功能都遵守。
 
 ### 2. 在 `src/generated/changeLog.ts` 的数组末尾追加一条记录
 ```ts
@@ -54,7 +56,11 @@
 - `server/claudeBridge.ts` —— Vite 插件，dev 下暴露 `POST /api/wish`，spawn `claude -p` 并把过程实时推给网页。孩子的文字走 **stdin**（命令行只有固定参数，安全）。
 - `vite.config.ts` —— 注册了 Vue 插件与上面的桥接插件，含 `@`→src 别名。
 - `src/composables/useAiWorkflow.ts` —— 网页侧的流式状态机（调用 /api/wish、解析 SSE）。
-- `src/components/InputBar.vue` —— 孩子输入与实时 AI 状态的 UI。
+- `src/composables/useSpeech.ts` —— 浏览器语音输入（Web Speech API，纯前端，零依赖、零 key）。
+- `src/composables/useTTS.ts` —— AI 结果的中文语音播报（SpeechSynthesis，纯前端）。
+- `src/components/InputBar.vue` —— 孩子输入（文字 + 🎤 语音）与实时 AI 状态的 UI。
+- `src/composables/useTheme.ts` + `src/components/ThemeToggle.vue` —— 右上角换肤（粉/蓝），通过 `<html data-theme>` 切换 `variables.css` 里的配色变量。
+- `src/components/ResetButton.vue` + `/api/reset` + `scripts/reset-generated.mjs` —— 右上角"🔄 重新开始"，一键把 `generated/` 还原成干净骨架。
 
 ## 项目结构（参考，勿改）
 
