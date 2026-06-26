@@ -1,12 +1,13 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { claudeBridgePlugin } from './server/claudeBridge'
 
 // https://vitejs.dev/config/
-// 说明：`@` 别名指向 src，方便后续 Claude Code 在 generated/ 中新增组件时引用。
-// 用 fileURLToPath 解析，兼容 Windows 与中文路径，无需引入 node:path。
+// 说明：`@` 别名指向 src；claudeBridgePlugin 仅在 dev 下生效，
+// 暴露 POST /api/wish，把孩子的需求送给 claude，并把过程实时推给网页。
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), claudeBridgePlugin()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src/', import.meta.url)),

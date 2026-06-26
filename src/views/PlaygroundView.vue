@@ -1,6 +1,7 @@
 <script setup lang="ts">
-// 唯一页面：标题 + 游戏区 + 状态面板 + 修改日志。
+// 唯一页面：标题 + 输入栏 + 游戏区 + 状态面板 + 修改日志。
 import GameHeader from '@/components/GameHeader.vue'
+import InputBar from '@/components/InputBar.vue'
 import GameCanvas from '@/components/GameCanvas.vue'
 import StatusPanel from '@/components/StatusPanel.vue'
 import ChangeLog from '@/components/ChangeLog.vue'
@@ -9,6 +10,7 @@ import ChangeLog from '@/components/ChangeLog.vue'
 <template>
   <div class="playground">
     <GameHeader />
+    <InputBar />
 
     <main class="playground-main">
       <div class="canvas-wrap">
