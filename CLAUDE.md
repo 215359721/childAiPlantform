@@ -39,6 +39,8 @@
 
 只要做好这两件事，状态、日志、计数就会自动更新，几乎不可能把项目改崩。
 
+> 💾 **关于"保存/切换作品"**：那是「📁 我的作品库」的事（右上角按钮，由 `WorksGallery.vue` + `/api/works/*` + `works/` 目录负责），**不属于孩子的需求**。如果孩子说"我想换个作品""我要保存"，**不要为此改任何文件**，引导用户点右上角 📁 按钮即可——作品库是冻结的基础设施。
+
 ## ❌ 绝对不要做
 
 - 不要改项目结构、不要新增/删除目录。
@@ -61,15 +63,19 @@
 - `src/components/InputBar.vue` —— 孩子输入（文字 + 🎤 语音）与实时 AI 状态的 UI。
 - `src/composables/useTheme.ts` + `src/components/ThemeToggle.vue` —— 右上角换肤（粉/蓝），通过 `<html data-theme>` 切换 `variables.css` 里的配色变量。
 - `src/components/ResetButton.vue` + `/api/reset` + `scripts/reset-generated.mjs` —— 右上角"🔄 重新开始"，一键把 `generated/` 还原成干净骨架。
+- `works/`（项目根） —— 本地作品库存储目录（已加入 `.gitignore`，私有）。每个 `works/<id>/` 含 `GameContent.vue`、`changeLog.ts` 副本 + `meta.json`。**不要手动改这里**，作品的写入/读取/删除只由下面的接口和组件负责。
+- `server/claudeBridge.ts` 里的 `/api/works/*` 接口（`list` / `save` / `load` / `delete`） —— 作品库的 server 端，已调通。
+- `src/composables/useWorks.ts` —— 作品库前端封装（接口调用 + 响应式列表 + loading/error）。
+- `src/components/WorksGallery.vue` —— 右上角「📁 我的作品库」浮动按钮 + 弹窗（保存 / 切换 / 删除）。
 
 ## 项目结构（参考，勿改）
 
 ```
 server/
-└── claudeBridge.ts          # 本地接口 /api/wish（冻结，勿动）
+└── claudeBridge.ts          # 本地接口 /api/wish、/api/reset、/api/works/*（冻结，勿动）
 src/
 ├── main.ts                  # 入口，挂载 App + 引入全局样式
-├── App.vue                  # 渲染 PlaygroundView
+├── App.vue                  # 渲染 PlaygroundView + 右上角浮动按钮
 ├── env.d.ts                 # 类型声明
 ├── assets/                  # 图片资源
 ├── styles/
@@ -77,18 +83,23 @@ src/
 │   └── main.css             # 全局样式、渐变背景、漂浮圆斑
 ├── composables/
 │   ├── gameProgress.ts      # 状态：从 changeLog 派生 计数/最后时间/日志列表
-│   └── useAiWorkflow.ts     # AI 工作流流式状态机（冻结，勿动）
+│   ├── useAiWorkflow.ts     # AI 工作流流式状态机（冻结，勿动）
+│   └── useWorks.ts          # 作品库前端封装（冻结，勿动）
 ├── components/              # 公共组件（职责单一）
 │   ├── GameHeader.vue       # ① 标题
 │   ├── InputBar.vue         # 孩子输入 + 实时 AI 状态（冻结，勿动）
 │   ├── GameCanvas.vue       # ② 游戏区卡片（内嵌 GameContent）
 │   ├── StatusPanel.vue      # ③ 当前状态
-│   └── ChangeLog.vue        # ④ 修改日志
+│   ├── ChangeLog.vue        # ④ 修改日志
+│   ├── ResetButton.vue      # 右上角重新开始（冻结，勿动）
+│   ├── ThemeToggle.vue      # 右上角换肤（冻结，勿动）
+│   └── WorksGallery.vue     # 右上角 📁 作品库：保存/切换/删除（冻结，勿动）
 ├── views/
 │   └── PlaygroundView.vue   # 唯一页面，五块布局
 └── generated/               # ← Claude Code 只在这里改
     ├── GameContent.vue      # 游戏画布（"长大"发生的地方）
     └── changeLog.ts         # 修改日志账本（每次追加一条）
+works/                       # 本地作品库（私有，git 忽略；冻结，勿动）
 ```
 
 ## 视觉风格：卡通糖果风

@@ -1,5 +1,15 @@
 import type { Plugin } from 'vite'
 import { spawn } from 'node:child_process'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
+import { join, resolve } from 'node:path'
 
 /**
  * Claude 桥接插件（仅 dev 服务生效）。
@@ -168,6 +178,123 @@ export function claudeBridgePlugin(): Plugin {
           res.end(JSON.stringify({ ok: false, error: err.message }))
         })
       })
+
+      // ===== 本地作品库接口（works/）=====
+      // 一个作品 = src/generated/{GameContent.vue, changeLog.ts} 两个文件的快照。
+      // 注意：Connect 中间件按路径前缀匹配，所以列表用 /api/works/list，
+      // 避免被 /api/works 这个前缀吞掉 save/load/delete 等子路径。
+      // GET /api/works/list：列出所有已保存作品（按保存时间倒序）
+      server.middlewares.use('/api/works/list', (req, res) => {
+        if (req.method !== 'GET') {
+          res.writeHead(405, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: '只支持 GET' }))
+          return
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(listWorks()))
+      })
+
+      // POST /api/works/save：把当前 generated 两文件快照另存为新作品
+      server.middlewares.use('/api/works/save', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.writeHead(405, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: '只支持 POST' }))
+          return
+        }
+        try {
+          const data = JSON.parse((await readBody(req)) || '{}') as SaveWorkInput
+          const name = typeof data.name === 'string' ? data.name.trim().slice(0, 60) : ''
+          if (!name) {
+            res.writeHead(400, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: '要给作品起个名字哦～' }))
+            return
+          }
+          const id = `${slugify(name)}-${Date.now().toString(36)}`
+          const dir = join(worksRoot, id)
+          mkdirSync(dir, { recursive: true })
+          copyFileSync(join(generatedDir, 'GameContent.vue'), join(dir, 'GameContent.vue'))
+          copyFileSync(join(generatedDir, 'changeLog.ts'), join(dir, 'changeLog.ts'))
+          const now = new Date().toISOString()
+          const meta: WorkMeta = {
+            id,
+            name,
+            emoji:
+              typeof data.emoji === 'string' && data.emoji ? data.emoji.slice(0, 8) : '🎨',
+            summary: typeof data.summary === 'string' ? data.summary.slice(0, 200) : '',
+            modificationCount: Number.isFinite(data.modificationCount)
+              ? Number(data.modificationCount)
+              : 0,
+            lastModifiedAt: typeof data.lastModifiedAt === 'string' ? data.lastModifiedAt : '',
+            childSaid:
+              typeof data.childSaid === 'string' && data.childSaid
+                ? data.childSaid.slice(0, 200)
+                : undefined,
+            createdAt: now,
+            savedAt: now,
+          }
+          writeFileSync(join(dir, 'meta.json'), JSON.stringify(meta, null, 2), 'utf8')
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: true, work: meta }))
+        } catch (e) {
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: false, error: errMsg(e) }))
+        }
+      })
+
+      // POST /api/works/load：把某作品写回 generated（切换/恢复作品）
+      server.middlewares.use('/api/works/load', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.writeHead(405, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: '只支持 POST' }))
+          return
+        }
+        try {
+          const { id } = JSON.parse((await readBody(req)) || '{}') as { id?: unknown }
+          const sid = String(id ?? '')
+          if (!assertSafeId(sid)) {
+            res.writeHead(400, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: '作品 id 不合法' }))
+            return
+          }
+          const dir = join(worksRoot, sid)
+          if (!existsSync(join(dir, 'meta.json'))) {
+            res.writeHead(404, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: '找不到这个作品' }))
+            return
+          }
+          copyFileSync(join(dir, 'GameContent.vue'), join(generatedDir, 'GameContent.vue'))
+          copyFileSync(join(dir, 'changeLog.ts'), join(generatedDir, 'changeLog.ts'))
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: true }))
+        } catch (e) {
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: false, error: errMsg(e) }))
+        }
+      })
+
+      // POST /api/works/delete：删除某作品
+      server.middlewares.use('/api/works/delete', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.writeHead(405, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: '只支持 POST' }))
+          return
+        }
+        try {
+          const { id } = JSON.parse((await readBody(req)) || '{}') as { id?: unknown }
+          const sid = String(id ?? '')
+          if (!assertSafeId(sid)) {
+            res.writeHead(400, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: '作品 id 不合法' }))
+            return
+          }
+          rmSync(join(worksRoot, sid), { recursive: true, force: true })
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: true }))
+        } catch (e) {
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: false, error: errMsg(e) }))
+        }
+      })
     },
   }
 }
@@ -241,4 +368,78 @@ function handleLine(line: string, res: { write: (s: string) => void }): void {
       text: typeof evt.result === 'string' ? evt.result : '',
     })
   }
+}
+
+// ===== 本地作品库（works/）：路径常量、类型与辅助函数 =====
+
+const worksRoot = join(process.cwd(), 'works')
+const generatedDir = join(process.cwd(), 'src/generated')
+
+interface WorkMeta {
+  id: string
+  name: string
+  emoji: string
+  summary: string
+  modificationCount: number
+  lastModifiedAt: string
+  childSaid?: string
+  createdAt: string
+  savedAt: string
+}
+
+interface SaveWorkInput {
+  name?: unknown
+  emoji?: unknown
+  summary?: unknown
+  modificationCount?: unknown
+  lastModifiedAt?: unknown
+  childSaid?: unknown
+}
+
+/** 校验作品 id：仅小写字母/数字/连字符（正则挡死所有穿越字符），并确认路径仍在 works/ 下 */
+function assertSafeId(id: string): boolean {
+  if (!/^[a-z0-9-]{1,80}$/.test(id)) return false
+  const root = resolve(worksRoot)
+  return resolve(worksRoot, id).startsWith(root)
+}
+
+/** 把作品名转成安全的目录名片段（中文/标点/空格 → -，全空兜底 work） */
+function slugify(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 24) || 'work'
+  )
+}
+
+/** 扫描 works/ 下所有合法作品，按保存时间倒序返回 */
+function listWorks(): WorkMeta[] {
+  if (!existsSync(worksRoot)) return []
+  let names: string[]
+  try {
+    names = readdirSync(worksRoot, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+  } catch {
+    return []
+  }
+  const list: WorkMeta[] = []
+  for (const name of names) {
+    if (!assertSafeId(name)) continue
+    const metaPath = join(worksRoot, name, 'meta.json')
+    if (!existsSync(metaPath)) continue
+    try {
+      const meta = JSON.parse(readFileSync(metaPath, 'utf8')) as WorkMeta
+      if (meta && typeof meta.id === 'string') list.push(meta)
+    } catch {
+      /* 单个 meta 损坏时跳过，不影响整张列表 */
+    }
+  }
+  return list.sort((a, b) => (b.savedAt || '').localeCompare(a.savedAt || ''))
+}
+
+function errMsg(e: unknown): string {
+  return e instanceof Error ? e.message : String(e)
 }
